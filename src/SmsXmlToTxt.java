@@ -25,6 +25,7 @@ public class SmsXmlToTxt {
         //Create a Copy file to manipulate
         File xmlCopy = new File("./TrimmedXML.xml");
         xmlCopy.createNewFile();
+		//Catch instance of no test input file
 		try{
 			Files.copy(xmlIn.toPath(), xmlCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
