@@ -12,6 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
 public class SmsXmlToTxt {
 
@@ -24,7 +25,13 @@ public class SmsXmlToTxt {
         //Create a Copy file to manipulate
         File xmlCopy = new File("./TrimmedXML.xml");
         xmlCopy.createNewFile();
-        Files.copy(xmlIn.toPath(), xmlCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		try{
+			Files.copy(xmlIn.toPath(), xmlCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch(NoSuchFileException exep){
+			System.err.println("The file was not found: ./TestXML.xml");	
+			return;
+		}
         System.out.println("Test");
 
         //Use DOM model for parsing through XML File
