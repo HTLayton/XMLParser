@@ -12,8 +12,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.ArrayList;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.Scanner;
+
 public class SmsXmlToTxt {
 
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
@@ -26,7 +33,7 @@ public class SmsXmlToTxt {
         File xmlCopy = new File("./TrimmedXML.xml");
         xmlCopy.createNewFile();
 		//Catch instance of no test input file
-		try{
+        try{
 			Files.copy(xmlIn.toPath(), xmlCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
 		catch(NoSuchFileException exep){
@@ -34,13 +41,54 @@ public class SmsXmlToTxt {
 			return;
 		}
         System.out.println("Test");
-
+       
+        //Convert file to an ArrayList<String> containing each line
+        ArrayList<String> copyLines = (ArrayList<String>)Files.readAllLines(xmlCopy.toPath());
+        //Iterate over each line in the file 
+        for(int i = 0; i < copyLines.size(); i++){
+            //Skip it if it's empty
+            String currentLine = copyLines.get(i);
+            if(currentLine.length() == 0){
+                continue;
+            }
+            String temp = null;
+            //If the string contains problematic unicode
+            if(currentLine.contains("&#")){
+                temp = "";
+                //Split by spaces, trimming leading whitespace 
+                String[] split = currentLine.trim().split(" ");
+                //Check for bad unicode in each token
+                for(int j = 0; j < split.length; j++){
+                    String tok = split[j];
+                    if(tok.charAt(0) == '&' && tok.charAt(1) == '#'){
+                        //If there's a quote, add that in and get rid of extra space
+                        if(tok.contains("\"")){
+                            temp = temp.substring(0, temp.length() - 1).concat("\" "); 
+                        }
+                    }
+                    //Otherwise, concatenate this token with a space (since we got rid of them)
+                    else{
+                        temp = temp.concat(tok) + " ";
+                    }
+                }
+            }
+            //If we ran into a problematic sequence, copy edited line
+            if(temp != null){
+                copyLines.set(i, "  " + temp);
+            }
+        }
+        
+        //Write each new line to the xmlCopy file for processing
+        BufferedWriter writer = new BufferedWriter(new FileWriter(xmlCopy));
+        for(String currLine : copyLines){
+            writer.write(currLine + "\n");
+        }
+        writer.close();
+        
         //Use DOM model for parsing through XML File
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.parse(xmlCopy.toString());
-        System.out.println("Test");
-
 
         //create parent node
         Node smses = doc.getElementsByTagName("smses").item(0);
