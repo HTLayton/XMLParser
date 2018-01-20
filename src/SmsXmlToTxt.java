@@ -37,7 +37,9 @@ public class SmsXmlToTxt {
                 int firstInd = currentLine.indexOf(";&#");
                 currentLine = currentLine.substring(0, firstInd-8) + currentLine.substring(firstInd+9);
             }
-            //Copy the corrected line 
+            //Copy the corrected line
+            currentLine = deleteUnwantedSMSData(currentLine);
+            //System.out.println(currentLine);
             copyLines.set(i, currentLine);
         }
         
@@ -49,11 +51,85 @@ public class SmsXmlToTxt {
         writer.close();
     }
 
+/**this is to finally get something down, but want to eventually make it non hard-coded to make future or scenario proof
+    i.e take into account what subject might be or time I can do this via looking at the data in the node like in the
+    current main and making that a string and checking length**/
+    private static String deleteUnwantedSMSData (String currentLine){
+        int index;
+
+        //looks for protocol and deletes it
+        while(currentLine.contains("protocol=\"0\"")) {
+            index = currentLine.indexOf("protocol=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+12);
+        }
+
+        while(currentLine.contains(" address=")) {
+            index = currentLine.indexOf(" address=");
+            currentLine = currentLine.substring(0,index)+currentLine.substring(index+23);
+        }
+
+        //looks for standalone date and date sent and deletes it
+        while(currentLine.contains(" date=") || currentLine.contains(" date_")) {
+            index = currentLine.indexOf(" date=");
+            currentLine = currentLine.substring(0,index)+currentLine.substring(index+21);
+            //consider updating to take into account time epoch so when it eventually grows to being 21 char long everything survives
+
+            index = currentLine.indexOf(" date_");
+            if(currentLine.contains("date_sent=\"0\""))
+                currentLine = currentLine.substring(0, index - 1) + currentLine.substring(index + 13);
+            else
+                currentLine = currentLine.substring(0, index - 1) + currentLine.substring(index + 25);
+        }
+
+        //looks for subject and deletes
+        while(currentLine.contains("subject=")) {
+            index = currentLine.indexOf("subject=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+14);
+        }
+
+        //looks for toa and sc_toa and deletes
+        while(currentLine.contains("toa=")) {
+            index = currentLine.indexOf(" toa=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+10);
+            index = currentLine.indexOf("sc_toa=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+13);
+        }
+
+        //looks for service center and deletes taking into account the 2 cases
+        while(currentLine.contains(" service_center=")) {
+            index = currentLine.indexOf(" service_center=");
+            if(currentLine.contains(" service_center=\"null\""))
+                currentLine = currentLine.substring(0, index - 1) + currentLine.substring(index + 21);
+            else
+                currentLine = currentLine.substring(0, index - 1) + currentLine.substring(index + 29);
+        }
+
+        //looks for read and deletes
+        while(currentLine.contains(" read=")) {
+            index = currentLine.indexOf(" read=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+8);
+        }
+
+        //looks for status and deletes
+        while(currentLine.contains(" status=")) {
+            index = currentLine.indexOf(" status=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+11);
+        }
+
+        //looks for locked and deletes
+        while(currentLine.contains(" locked=")) {
+            index = currentLine.indexOf(" locked=");
+            currentLine = currentLine.substring(0,index-1)+currentLine.substring(index+10);
+        }
+
+        return currentLine;
+    }
+
     public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
 
         //Get Specific Original File
         File xmlIn = new File("./TestXML.xml");
-        System.out.println("Test");
+        //System.out.println("Test");
 
         //Create a Copy file to manipulate
         File xmlCopy = new File("./TrimmedXML.xml");
@@ -66,7 +142,7 @@ public class SmsXmlToTxt {
             System.err.println("File was not found: ./TestXML.xml");
             return;
         }
-        System.out.println("Test");
+        //System.out.println("Test");
         
         //Convert file to an ArrayList<String> containing each line
         ArrayList<String> copyLines = (ArrayList<String>)Files.readAllLines(xmlCopy.toPath());
