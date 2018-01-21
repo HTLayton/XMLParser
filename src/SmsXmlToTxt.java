@@ -5,23 +5,37 @@
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardCopyOption;
+
 import java.util.List;
 import java.util.ArrayList;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.util.Scanner;
 
 public class SmsXmlToTxt {
+
+    private static String[] toDelete = {"protocol", "date", "subject", "toa", "sc_toa", 
+        "service_center", "read", "status", "locked", "date_sent"};
 
     private static void deleteTroubleChars(ArrayList<String> copyLines, File xmlCopy) throws IOException{
         //Iterate over each line in the file 
@@ -38,7 +52,7 @@ public class SmsXmlToTxt {
                 currentLine = currentLine.substring(0, firstInd-8) + currentLine.substring(firstInd+9);
             }
             //Copy the corrected line
-            currentLine = deleteUnwantedSMSData(currentLine);
+            //currentLine = deleteUnwantedSMSData(currentLine);
             //System.out.println(currentLine);
             copyLines.set(i, currentLine);
         }
@@ -125,7 +139,7 @@ public class SmsXmlToTxt {
         return currentLine;
     }
 
-    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
+    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException, Exception{
 
         //Get Specific Original File
         File xmlIn = new File("./TestXML.xml");
@@ -149,34 +163,87 @@ public class SmsXmlToTxt {
         //Delete troublesome unicode characters 
         deleteTroubleChars(copyLines, xmlCopy);
         
+
         //Use DOM model for parsing through XML File
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.parse(xmlCopy.toString());
 
         //create parent node
-        Node smses = doc.getElementsByTagName("smses").item(0);
+        //Node smses = doc.getElementsByTagName("smses").item(0);
+        //Element smses = (Element) doc.getElementsByTagName("smses").item(0);
+        Element smsesElem = (Element) doc.getElementsByTagName("smses").item(0);
+        NodeList smsesList = smsesElem.getElementsByTagName("sms");
 
+
+        ArrayList<Element> smses = new ArrayList<>(); 
+        for(int i = 0; i < smsesList.getLength(); i++){
+            smses.add((Element)smsesList.item(i));
+        }
+        
+        for(Element currElem : smses){
+            for(String attr : toDelete){
+                currElem.removeAttribute(attr);
+            }
+        }
         //Make a nodelist based on parent
-        NodeList list = smses.getChildNodes();
+        NodeList list = smsesElem.getChildNodes();
 
         //iterate through Node list and print by name
         for(int i = 0; i < list.getLength(); i++){
             Node node = list.item(i);
-            System.out.println("Node "+ i + " is " + node.getNodeName());
+            //System.out.println("Node "+ i + " is " + node.getNodeName());
             if(node.getAttributes() != null) {
-                System.out.println(node.getAttributes().getNamedItem("body"));
+                //Get type to see who sent message
+                String type;
+                try{
+                    type = node.getAttributes().getNamedItem("type").toString();
+                }
+                catch(NullPointerException exep){
+                    type = null;
+                }
+                if(type != null){
+                    //If type is 1, get contact name
+                    if(type.compareTo("type=\"1\"") == 0){
+                        String contact = node.getAttributes().getNamedItem("contact_name")
+                            .toString().substring(13);
+                        contact = contact.replace("\"", "");
+                        System.out.print(contact + ": ");
+                    }
+                    //If type is 2, print "You: "
+                    else if(type.compareTo("type=\"2\"") == 0){
+                        System.out.print("You: ");
+                    }
+                }
+                //Get body (this could be null if child is an MMS
+                String body;
+                try{
+                    body = node.getAttributes().getNamedItem("body").toString().substring(5);
+                }
+                catch(NullPointerException exep){
+                    body = null;
+                }
+                //Print out message without body text 
+                if(body != null){
+                    System.out.println(body);
+                    System.out.println();
+                }
             }
-            System.out.println();
             /**if("sms".equals(node.getNodeName()))
                 System.out.println("Node " + (i) + " is an SMS Node");
             else if("mms".equals(node.getNodeName()))
                 System.out.println("Node " + (i) + " is an MMS Node");
             else
                 System.out.println("Node " + (i) + " is an Unknown Node Type");
-             **/
+            **/
         }
-
+        //Print out entire XML for debugging 
+        Transformer tf = TransformerFactory.newInstance().newTransformer();
+        tf.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        tf.setOutputProperty(OutputKeys.INDENT, "yes");
+        Writer out = new StringWriter();
+        tf.transform(new DOMSource(doc), new StreamResult(out));
+        System.out.println(out.toString());
     }
 
 }
