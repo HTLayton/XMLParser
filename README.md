@@ -21,3 +21,8 @@ Uses the W3 XML DOM Look Here for official tutorial --> https://www.w3schools.co
 -stitch together multiple xml files to make a bigger singular file
  OR
  split files into smaller sections
+
+## Maven Usage Guide
+To compile the source and build a package for the project, run `mvn package`
+Then, to run the main project, use `java -cp target/xml-parser-0.0.1.jar:. org.HTLayton.SmsXmlToTxt`
+on Linux/MacOS, or `java -cp target/xml-parser-0.0.1.jar;. org.HTLayton.SmsXmlToTxt` on Windows.
