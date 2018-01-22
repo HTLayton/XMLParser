@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>com.HTLayton.XMLParser</groupId>
+        <artifactId>xml-parser</artifactId>
+        <version>0.0.1</version>
+        <packaging>jar</packaging>
+        <name>XMLParser</name>
+
+        <properties>
+            <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        </properties>
+
+        <dependencies>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+            <dependency>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-text</artifactId>
+                    <version>1.2</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+            <dependency>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                    <version>3.7</version>
+            </dependency>
+        </dependencies>
+
+        <build>
+            <resources>
+                <resource>
+                    <targetPath>.</targetPath>
+                    <filtering>true</filtering>
+                    <directory>${basedir}/src/</directory>
+                </resource>
+            </resources>
+        </build>
+
+</project>
