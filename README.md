@@ -4,9 +4,6 @@ Parses XML File from SMS Backup and Restore
 Uses the W3 XML DOM Look Here for official tutorial --> https://www.w3schools.com/xml/dom_intro.asp
 
 <b>Current Goals:</b>
-
--Trim down SMS Nodes to exclude the data: 
-"protocol", "date", "subject", "toa", "sc_toa", "service_center", "read", "status", "locked", and "date_sent"
  
 -Trim down MMS Nodes to exclude any part where ct != "text/plain" --> This can be in every mms even those that are 'text_only="0"'
 
@@ -21,6 +18,12 @@ Uses the W3 XML DOM Look Here for official tutorial --> https://www.w3schools.co
 -stitch together multiple xml files to make a bigger singular file
  OR
  split files into smaller sections
+
+<b>Completed Goals:</b>
+
+-Trim down SMS Nodes to exclude the data: 
+"protocol", "date", "subject", "toa", "sc_toa", "service_center", "read", "status", "locked", and "date_sent"
+
 
 ## Maven Usage Guide
 To compile the source and build a package for the project, run `mvn package`
