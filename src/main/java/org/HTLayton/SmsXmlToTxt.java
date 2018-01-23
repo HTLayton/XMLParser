@@ -52,7 +52,9 @@ public class SmsXmlToTxt {
             while(currentLine.contains(";&#")){
                 //Get rid of it 
                 int firstInd = currentLine.indexOf(";&#");
-                currentLine = currentLine.substring(0, firstInd-8) + currentLine.substring(firstInd+9);
+                String xmlChar = currentLine.substring(firstInd-7, firstInd+9);
+                String fixedChar = StringEscapeUtils.unescapeXml(xmlChar);
+                currentLine = currentLine.replace(xmlChar, fixedChar);
             }
             while(currentLine.contains("\\u")){
                 int firstInd = currentLine.indexOf("\\u");
