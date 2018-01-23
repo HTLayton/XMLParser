@@ -8,6 +8,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang3.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -51,6 +53,12 @@ public class SmsXmlToTxt {
                 //Get rid of it 
                 int firstInd = currentLine.indexOf(";&#");
                 currentLine = currentLine.substring(0, firstInd-8) + currentLine.substring(firstInd+9);
+            }
+            while(currentLine.contains("\\u")){
+                int firstInd = currentLine.indexOf("\\u");
+                String escapedString = currentLine.substring(firstInd, firstInd+6);
+                String replacement = StringEscapeUtils.unescapeJava(escapedString);
+                currentLine = currentLine.replace(escapedString, replacement);
             }
             //Copy the corrected line
             //currentLine = deleteUnwantedSMSData(currentLine);
