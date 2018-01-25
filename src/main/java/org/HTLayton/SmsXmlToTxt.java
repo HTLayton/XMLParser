@@ -185,11 +185,35 @@ public class SmsXmlToTxt {
         //Element smses = (Element) doc.getElementsByTagName("smses").item(0);
         Element smsesElem = (Element) doc.getElementsByTagName("smses").item(0);
         NodeList smsesList = smsesElem.getElementsByTagName("sms");
+        NodeList mmsesList = smsesElem.getElementsByTagName("mms");
 
 
         ArrayList<Element> smses = new ArrayList<>(); 
         for(int i = 0; i < smsesList.getLength(); i++){
             smses.add((Element)smsesList.item(i));
+        }
+
+        ArrayList<Element> mmses = new ArrayList<>();
+        for(int i = 0; i < mmsesList.getLength(); i++){
+            mmses.add((Element)mmsesList.item(i));
+        }
+
+        for(Element currElem : mmses){
+            String directory = currElem.getAttribute("contact_name");
+            NodeList partList = ((Element)currElem.getElementsByTagName("parts")
+                    .item(0)).getElementsByTagName("part");
+            if(partList.getLength() > 0){
+                System.out.println("Success!");
+            }
+            for(int i = 0; i < partList.getLength(); i++){
+                Node currPart = partList.item(i);
+                if(((Element)currPart).getAttribute("ct").contains("image")){
+                    String data = ((Element)currPart).getAttribute("data");
+                    System.out.println(data);
+                    String filename = ((Element)currPart).getAttribute("name");
+                    System.out.println(filename);
+                }
+            }
         }
         
         for(Element currElem : smses){
@@ -254,7 +278,7 @@ public class SmsXmlToTxt {
         tf.setOutputProperty(OutputKeys.INDENT, "yes");
         Writer out = new StringWriter();
         tf.transform(new DOMSource(doc), new StreamResult(out));
-        System.out.println(out.toString());
+        //System.out.println(out.toString());
     }
 
 }
